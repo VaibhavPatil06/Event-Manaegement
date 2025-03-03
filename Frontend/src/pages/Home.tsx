@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
-// import { fetchEvents } from '../store/slices/eventsSlice';
 import Navbar from "../components/Navbar";
 import EventCard from "../components/EventCard";
 import EventModal from "../components/EventModal";
@@ -92,9 +91,9 @@ const Home: React.FC = () => {
           }));
 
           setEvents((prevEvents) => {
-            const existingIds = new Set(prevEvents.map((e) => e.id));
+            const existingIds = new Set(prevEvents.map((e: EventType) => e.id)); // Add type annotation for `e`
             const filteredNewEvents = newEvents.filter(
-              (e) => !existingIds.has(e.id)
+              (e: EventType) => !existingIds.has(e.id) // Add type annotation for `e`
             );
             return page === 1
               ? filteredNewEvents
@@ -188,7 +187,7 @@ const Home: React.FC = () => {
 
   const handleCloseAddModal = () => {
     setShowAddModal(false);
-    fetchEvents(1);
+    fetchEvents(1,searchTerm);
     setSelectedEvent(null);
     dispatch(setId(""));
     dispatch(setTitle(""));

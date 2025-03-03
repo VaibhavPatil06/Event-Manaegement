@@ -1,6 +1,6 @@
 // import UserModel from "../../model/NewModel/userModel.js";
 import { verifyJwt } from "../../utils/auth.js";
-import AdminModel from "../adminUser/admin-user.schema.js";
+import AdminModel from "../adminUser/schema/admin-user.schema.js";
 
 export const isAuth = async (req, res, next) => {
   try {

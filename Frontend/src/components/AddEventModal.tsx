@@ -26,7 +26,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
   });
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [imagePreview, setImagePreview] = useState(""); // Stores preview URL
+  const [imagePreview, setImagePreview] = useState(image); // Stores preview URL
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files && e.target.files[0];
@@ -60,17 +60,27 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
 
       console.log("Sending FormData:", formData);
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/event/create-event`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data", // ✅ Don't manually set boundary
-          },
-          withCredentials: true, // ✅ Required if using cookies/authentication
-        }
-      );
-
+      const response = update
+        ? await axios.post(
+            `${import.meta.env.VITE_BACKEND_URL}/api/v1/event/update-event`,
+            formData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data", // ✅ Don't manually set boundary
+              },
+              withCredentials: true, // ✅ Required if using cookies/authentication
+            }
+          )
+        : await axios.post(
+            `${import.meta.env.VITE_BACKEND_URL}/api/v1/event/create-event`,
+            formData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data", // ✅ Don't manually set boundary
+              },
+              withCredentials: true, // ✅ Required if using cookies/authentication
+            }
+          );
       if (response.data.success) {
         setIsSubmitting(false);
         toast.success(response.data.message || "Event created successfully");
@@ -311,7 +321,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                   className="block text-gray-700 text-sm font-bold mb-2"
                   htmlFor="imageUrl"
                 >
-                  Image URL
+                  Image
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -325,10 +335,23 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                     onChange={handleImageChange}
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1 flex items-center">
-                  <Info size={12} className="mr-1" />
-                  Leave empty to use a default image
-                </p>
+                {/* Display the last uploaded image's file name */}
+                {image && typeof image === "string" && (
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-500">
+                      Last uploaded file:{" "}
+                      <strong>{image.split("/").pop()}</strong>
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      Upload a new file to replace the existing one.
+                    </p>
+                  </div>
+                )}
+                {img && img instanceof File && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    Selected file: <strong>{img.name}</strong>
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-between mt-8">
@@ -391,8 +414,10 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                   <div className="relative h-40 rounded-lg overflow-hidden mb-4">
                     <img
                       src={
-                        imagePreview ||
-                        "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                        imagePreview instanceof File
+                          ? URL.createObjectURL(imagePreview) // Convert File to URL
+                          : imagePreview || // Use existing image path if available
+                            "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" // Fallback to default image
                       }
                       alt={eventTitle}
                       className="w-full h-full object-cover"

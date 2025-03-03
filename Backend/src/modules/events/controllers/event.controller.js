@@ -75,56 +75,76 @@ export const createEvent = async (req, res) => {
     res.status(400).json({ message: error.message, success: false });
   }
 };
-
-export const updateEvent = async (req, res) => {
+export const updateEvents = async (req, res) => {
   try {
     upload(req, res, async (err) => {
       if (err) {
-        console.log(err);
         return res.status(400).json({
           success: false,
           message: "Error uploading file",
           error: err.message,
         });
       }
+
+      const { title, description, date, location, id } = req.body;
+
+      if (!id) {
+        return res.status(400).json({
+          success: false,
+          message: "Event ID is required for updating!",
+        });
+      }
+
+      // Find the existing event
+      const existingEvent = await EventModel.findById(id);
+      if (!existingEvent) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Event not found!" });
+      }
+
+      // Update event fields
+      existingEvent.title = title || existingEvent.title;
+      existingEvent.description = description || existingEvent.description;
+      existingEvent.date = date || existingEvent.date;
+      existingEvent.location = location || existingEvent.location;
+      existingEvent.updatedBy = req.context.user;
+      existingEvent.updatedAt = new Date();
+
+      let imagePath = existingEvent.image || "";
+
+      // Handle file upload if a new file is provided
+      if (req.file) {
+        const eventFolder = `uploads/events/${existingEvent._id}`;
+        const imageFolder = `${eventFolder}/img`;
+
+        // Ensure directories exist
+        fs.mkdirSync(imageFolder, { recursive: true });
+
+        // Define full image path
+        imagePath = path.join(imageFolder, req.file.originalname);
+
+        // Save the new file
+        fs.writeFileSync(imagePath, req.file.buffer);
+
+        // Delete the old image if it exists
+        if (existingEvent.image && fs.existsSync(existingEvent.image)) {
+          fs.unlinkSync(existingEvent.image);
+        }
+
+        // Update the image path in the event
+        existingEvent.image = imagePath;
+      }
+
+      // Save the updated event
+      await existingEvent.save();
+
+      res.status(200).json({
+        message: "Event updated successfully",
+        success: true,
+        event: existingEvent,
+      });
     });
-    const { title, description, date, image, updatedBy, id } = req.body;
-
-    const event = await EventModel.findById(id);
-    if (!event) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Event not found!" });
-    }
-    let imagePath = image;
-
-    if (req.file) {
-      const eventFolder = `uploads/events/${event._id}`;
-      const imageFolder = `${eventFolder}/img`;
-
-      // Ensure directories exist
-      fs.mkdirSync(imageFolder, { recursive: true });
-
-      // Define full image path
-      imagePath = path.join(imageFolder, req.file.originalname);
-
-      // Save the file
-      fs.writeFileSync(imagePath, req.file.buffer);
-
-      // Update event with image path
-    }
-
-    event.title = title || event.title;
-    event.description = description || event.description;
-    event.date = date || event.date;
-    event.image = imagePath || event.image;
-    event.updatedBy = updatedBy || event.updatedBy;
-    event.updatedAt = new Date();
-
-    await event.save();
-    res
-      .status(200)
-      .json({ message: "Event updated successfully", success: true, event });
   } catch (error) {
     res.status(400).json({ message: error.message, success: false });
   }
