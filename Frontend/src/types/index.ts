@@ -1,8 +1,8 @@
 export interface User {
   id: string;
   email: string;
-  fullName: string; // ✅ Ensure this exists
-  role: string; // ✅ Ensure this exists
+  fullName: string; //  Ensure this exists
+  role: string; //  Ensure this exists
 }
 
 

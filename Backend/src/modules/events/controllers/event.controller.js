@@ -184,10 +184,16 @@ export const getAllEvents = async (req, res) => {
     const limitNumber = parseInt(limit);
 
     let filter = {};
+
     if (searchTerm) {
-      filter.title = { $regex: searchTerm, $options: "i" };
-      filter.description = { $regex: searchTerm, $options: "i" };
-      filter.location = { $regex: searchTerm, $options: "i" };
+      const regex = new RegExp(searchTerm.split('').join('.*'), 'i'); // Allows similar character sequences
+      filter = {
+        $or: [
+          { title: { $regex: regex } },
+          { description: { $regex: regex } },
+          { location: { $regex: regex } }
+        ]
+      };
     }
 
     const events = await EventModel.find(filter)
@@ -202,3 +208,4 @@ export const getAllEvents = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+

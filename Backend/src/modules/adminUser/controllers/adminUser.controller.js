@@ -126,8 +126,8 @@ export const login = async (req, res) => {
     res.cookie("accessToken", token, {
       maxAge: 2.592e9, // 30 days
       httpOnly: true, // More secure (set to false only for testing)
-      secure: false, // ✅ Set `false` in localhost, `true` in production
-      sameSite: "Lax", // ✅ Allows cross-origin cookies in localhost
+      secure: false, //  Set `false` in localhost, `true` in production
+      sameSite: "Lax", //  Allows cross-origin cookies in localhost
     });
 
     res

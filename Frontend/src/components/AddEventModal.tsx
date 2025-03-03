@@ -27,7 +27,31 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState(image); // Stores preview URL
+  const [error, setError] = useState('');
 
+  const validateDate = (selectedDate:string):boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to ensure only date comparison
+
+    const selected = new Date(selectedDate);
+    if (selected < today) {
+      setError('Date must be in the future.');
+      return false;
+    } else {
+      setError('');
+      return true;
+    }
+  };
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>): void =>{
+    const selectedDate = e.target.value;
+    setDate(selectedDate);
+
+    if (validateDate(selectedDate)) {
+      // Proceed with further actions if the date is valid
+      console.log('Valid date:', selectedDate);
+    }
+  };
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files && e.target.files[0];
 
@@ -66,9 +90,9 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
             formData,
             {
               headers: {
-                "Content-Type": "multipart/form-data", // ✅ Don't manually set boundary
+                "Content-Type": "multipart/form-data", //  Don't manually set boundary
               },
-              withCredentials: true, // ✅ Required if using cookies/authentication
+              withCredentials: true, //  Required if using cookies/authentication
             }
           )
         : await axios.post(
@@ -76,9 +100,9 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
             formData,
             {
               headers: {
-                "Content-Type": "multipart/form-data", // ✅ Don't manually set boundary
+                "Content-Type": "multipart/form-data", //  Don't manually set boundary
               },
-              withCredentials: true, // ✅ Required if using cookies/authentication
+              withCredentials: true, //  Required if using cookies/authentication
             }
           );
       if (response.data.success) {
@@ -270,28 +294,31 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
             <div
               className={`px-6 pb-6 ${currentStep === 2 ? "block" : "hidden"}`}
             >
-              <div className="mb-4">
-                <label
-                  className="block text-gray-700 text-sm font-bold mb-2"
-                  htmlFor="date"
-                >
-                  Date
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Calendar size={18} className="text-indigo-500" />
-                  </div>
-                  <input
-                    className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-3 pl-10 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 input-focus"
-                    id="date"
-                    type="date"
-                    name="date" // ✅ Add this to ensure form validation
-                    value={eventDate ? eventDate.split("T")[0] : ""}
-                    onChange={(e) => setDate(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
+               <div className="mb-4">
+      <label
+        className="block text-gray-700 text-sm font-bold mb-2"
+        htmlFor="date"
+      >
+        Date
+      </label>
+      <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <Calendar size={18} className="text-indigo-500" />
+        </div>
+        <input
+          className={`shadow-sm appearance-none border ${
+            error ? 'border-red-500' : 'border-gray-300'
+          } rounded-lg w-full py-3 px-3 pl-10 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 input-focus`}
+          id="date"
+          type="date"
+          name="date"
+          value={eventDate ? eventDate.split("T")[0] : ""}
+          onChange={handleDateChange}
+          required
+        />
+      </div>
+      {error && <p className="text-red-500 text-xs italic mt-2">{error}</p>}
+    </div>
 
               <div className="mb-4">
                 <label
@@ -331,7 +358,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                     className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-3 pl-10 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 input-focus"
                     id="imageUpload"
                     type="file"
-                    accept="image/*" // ✅ Allows only images
+                    accept="image/*" //  Allows only images
                     onChange={handleImageChange}
                   />
                 </div>

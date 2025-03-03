@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import Navbar from "../components/Navbar";
 import EventCard from "../components/EventCard";
@@ -19,6 +19,7 @@ import {
   setTitle,
   setUpdate,
 } from "../store/slices/eventsSlice";
+
 type EventType = {
   id: string;
   title: string;
@@ -27,6 +28,7 @@ type EventType = {
   location: string;
   image: string;
 };
+
 interface Events {
   _id: string;
   title: string;
@@ -45,89 +47,53 @@ const Home: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [events, setEvents] = useState<EventType[]>([]);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const [hasMore,setHasMore] = useState(false);
 
-  const observer = useRef<IntersectionObserver | null>(null);
-  const lastEventElementRef = useCallback(
-    (node: HTMLDivElement) => {
-      if (loading || !hasMore) return;
-      if (observer.current) observer.current.disconnect();
+  const fetchEvents = async (page: number, search: string) => {
+    setLoading(true);
 
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting) {
-          setPage((prevPage) => prevPage + 1);
-        }
-      });
+    try {
+      const response = await axios.get(
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/v1/event/all-event?page=${page}&limit=10&searchTerm=${search}`
+      );
 
-      if (node) observer.current.observe(node);
-    },
-    [loading, hasMore]
-  );
+      if (response.data.success) {
+        setHasMore(response?.data?.hasMore)
+        const newEvents = response.data.data.map((item: Events) => ({
+          id: item._id,
+          title: item.title,
+          description: item.description,
+          date: item.date,
+          location: item.location,
+          image: `${import.meta.env.VITE_BACKEND_URL}/${item.image.replace(
+            /\\/g,
+            "/"
+          )}`,
+        }));
 
-  const fetchEvents = useCallback(
-    async (page: number, search: string) => {
-      if (!hasMore || loading) return;
-      setLoading(true);
-
-      try {
-        const response = await axios.get(
-          `${
-            import.meta.env.VITE_BACKEND_URL
-          }/api/v1/event/all-event?page=${page}&limit=10&searchTerm=${search}`
-        );
-
-        if (response.data.success) {
-          const newEvents = response.data.data.map((item: Events) => ({
-            id: item._id,
-            title: item.title,
-            description: item.description,
-            date: item.date,
-            location: item.location,
-            image: `${import.meta.env.VITE_BACKEND_URL}/${item.image.replace(
-              /\\/g,
-              "/"
-            )}`,
-          }));
-
-          setEvents((prevEvents) => {
-            const existingIds = new Set(prevEvents.map((e: EventType) => e.id)); // Add type annotation for `e`
-            const filteredNewEvents = newEvents.filter(
-              (e: EventType) => !existingIds.has(e.id) // Add type annotation for `e`
-            );
-            return page === 1
-              ? filteredNewEvents
-              : [...prevEvents, ...filteredNewEvents];
-          });
-
-          setHasMore(response.data.hasMore);
-        }
-      } catch (error) {
-        const err = error as AxiosError<{ message: string }>;
-        toast.error(err.response?.data?.message || "Something went wrong");
-      } finally {
-        setLoading(false);
+        setEvents(newEvents);
+        setTotalPages(Math.ceil(response.data.total / 10)); // Assuming 10 events per page
       }
-    },
-    [hasMore, loading]
-  );
+    } catch (error) {
+      const err = error as AxiosError<{ message: string }>;
+      toast.error(err.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Fetch when search term or filters change
+  // Fetch when search term or page changes
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      setPage(1);
-      fetchEvents(1, searchTerm);
+      fetchEvents(page, searchTerm);
     }, 500); // Debounce API call by 500ms
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, fetchEvents]);
-
-  // Fetch when page changes
-  useEffect(() => {
-    if (page > 1) {
-      fetchEvents(page, searchTerm);
-    }
-  }, [page, fetchEvents]);
+  }, [searchTerm, page]);
 
   useEffect(() => {
     if (addUpdateSuccess) {
@@ -137,14 +103,17 @@ const Home: React.FC = () => {
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
+    setPage(1); // Reset to the first page when searching
   };
 
   const handleEventClick = (event: Event) => {
     setSelectedEvent(event);
   };
+
   const handleCloseModal = () => {
     setSelectedEvent(null);
   };
+
   const handleDelete = async (id: string) => {
     if (!id) return;
 
@@ -187,7 +156,7 @@ const Home: React.FC = () => {
 
   const handleCloseAddModal = () => {
     setShowAddModal(false);
-    fetchEvents(1,searchTerm);
+    fetchEvents(page, searchTerm);
     setSelectedEvent(null);
     dispatch(setId(""));
     dispatch(setTitle(""));
@@ -197,6 +166,19 @@ const Home: React.FC = () => {
     dispatch(setUpdate(false));
     dispatch(setImage(""));
   };
+
+  const handlePreviousPage = () => {
+    if (page > 1) {
+      setPage(page - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (page < totalPages) {
+      setPage(page + 1);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar onAddEvent={handleAddEvent} />
@@ -230,7 +212,7 @@ const Home: React.FC = () => {
                     placeholder="Search events by name, description, or location..."
                     className="w-full px-3 py-2 focus:outline-none"
                     value={searchTerm}
-                    onChange={(e) => handleSearch(e)}
+                    onChange={handleSearch}
                   />
                 </div>
               </div>
@@ -296,11 +278,8 @@ const Home: React.FC = () => {
           </div>
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {events.map((event, index) => (
-              <div
-                ref={index === events.length - 1 ? lastEventElementRef : null}
-                key={event.id}
-              >
+            {events.map((event) => (
+              <div key={event.id}>
                 <EventCard
                   event={event}
                   onClick={() => handleEventClick(event)}
@@ -310,9 +289,8 @@ const Home: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {events.map((event, index) => (
+            {events.map((event) => (
               <div
-                ref={index === events.length - 1 ? lastEventElementRef : null}
                 key={event.id}
                 className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer"
                 onClick={() => handleEventClick(event)}
@@ -356,6 +334,32 @@ const Home: React.FC = () => {
             ))}
           </div>
         )}
+
+        {/* Pagination buttons */}
+        <div className="flex justify-center mt-8 space-x-4">
+          <button
+            onClick={handlePreviousPage}
+            disabled={page === 1}
+            className={`px-4 py-2 rounded-md ${
+              page === 1
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-indigo-600 hover:bg-indigo-700 text-white"
+            }`}
+          >
+            Previous
+          </button>
+          <button
+            onClick={handleNextPage}
+            disabled={hasMore === false || page === totalPages}
+            className={`px-4 py-2 rounded-md ${
+              page === totalPages
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-indigo-600 hover:bg-indigo-700 text-white"
+            }`}
+          >
+            Next
+          </button>
+        </div>
       </main>
 
       {selectedEvent && (

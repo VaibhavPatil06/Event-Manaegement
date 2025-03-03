@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "./store";
 import Auth from "./pages/Auth";
 import Home from "./pages/Home";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { toast } from "react-toastify";
 import { setIsAuthenticated, setUser } from "./store/slices/authSlice";
 
@@ -27,8 +27,9 @@ function App() {
         dispatch(setUser(admin?.data?.data));
       } catch (error) {
         dispatch(setIsAuthenticated(false));
-        const err = error as AxiosError<{ message: string }>; // 👈 Explicitly cast error as AxiosError
-        toast.error(err.response?.data?.message || "Something went wrong");
+        console.log(error)
+        // const err = error as AxiosError<{ message: string }>; // 👈 Explicitly cast error as AxiosError
+        // toast.error(err.response?.data?.message || "Something went wrong");
       }
     };
     me();
