@@ -94,12 +94,15 @@ The **Event Management System** is a full-stack web application that enables use
 
 ## 🛠 Features
 
-- **Admin & User Management** (Login, Signup, Secure Session Token)
-- **CRUD Operations** (Create, Read, Update, Delete Events)
-- **Event Upload & Image Storage**
-- **User Authentication with Secure Password Hashing**
-- **Responsive Frontend with React & Tailwind CSS**
-
+Admin & User Management (Login, Signup, Secure Session Token)
+✅ CRUD Operations (Create, Read, Update, Delete Events)
+✅ Event Upload & Image Storage
+✅ User Authentication with Secure Password Hashing
+✅ Redux Toolkit for Global State Management
+✅ Search & Filtering (Search events by title, location, description, and date)
+✅ Responsive Frontend with React & Tailwind CSS
+✅ Bookmarking & Favorite Events
+✅ Real-Time Notifications for Event Update
 ---
 
 ## 🚀 Environment Variables
@@ -159,17 +162,9 @@ npm run dev
 
 - **Backend:** Node.js, Express.js, MongoDB
 - **Frontend:** React.js, TypeScript, Tailwind CSS, Redux Toolkit
-- **Security:** JWT, bcrypt, dotenv, Express-session
+- **Security:** JWT, bcrypt, crypto
 
 ---
 
-## 🏆 Future Improvements
-- 📌 Add User Roles & Permissions
-- 📌 Implement Email Notifications
-- 📌 Add Payment Gateway for Paid Events
 
----
-
-### 📩 Contact & Support
-For any issues or contributions, feel free to open an issue or contact the repository owner. 🚀
 
