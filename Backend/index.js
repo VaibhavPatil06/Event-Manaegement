@@ -22,19 +22,7 @@ app.use(express.json());
 app.use(bodyParser.json({ limit: "100mb" }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(setContext);
-// const corsOptions = {
-//   origin: ["http://localhost:5174"],
-//   methods: ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
-//   allowedHeaders: [
-//     "Content-Type",
-//     "Authorization",
-//     "Access-Control-Allow-Headers",
-//     "Access-Control-Allow-Origin",
-//     "Access-Control-Allow-Credentials",
-//   ],
-//   exposedHeaders: ["Authorization"],
-//   credentials: true,
-// };
+
 app.use(
   cors({
     origin: "http://localhost:5173", // Change this to match your frontend
@@ -51,6 +39,7 @@ app.get("/", (req, res) => {
   res.status(200).json({ message: "Helthcheck pass !.", success: true });
 });
 
+//routes
 app.use("/api/v1/admin", router);
 app.use("/api/v1/event", eventRouter);
 
