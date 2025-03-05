@@ -9,7 +9,7 @@ import mongoose from "mongoose";
 export const me = async (req, res) => {
   try {
     const userDetails = await AdminModel.findById(req.context?.user)
-      .select("password cookie")
+      .select("-password -cookie")
       .lean();
     res
       .status(201)

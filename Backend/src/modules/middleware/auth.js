@@ -25,7 +25,9 @@ export const isAdmin = async (req, res, next) => {
     let context = {
       user: undefined,
       role: undefined,
+      uuid: undefined,
     };
+    console.log(req.context);
     if (!req?.context?.user) {
       res.status(401).json({
         message: "Please Logged in",
@@ -34,8 +36,9 @@ export const isAdmin = async (req, res, next) => {
       return;
     }
     const admin = await AdminModel.findById(req.context.user)
-      .select("_id role cookie access")
+      .select("_id role cookie access uuid")
       .lean();
+    // get token from the db decode it and compare it with uuid
 
     const decodeToken = verifyJwt(admin?.cookie);
 
@@ -54,6 +57,7 @@ export const isAdmin = async (req, res, next) => {
     context = {
       user: admin?._id,
       role: admin?.role,
+      uuid: admin?.uuid,
     };
 
     req.context = context;
@@ -71,11 +75,13 @@ export const setContext = async (req, res, next) => {
     let context = {
       user: undefined,
       role: undefined,
+      uuid: undefined,
     };
     if (req?.cookies.accessToken) {
       const user = verifyJwt(req.cookies.accessToken);
       context.user = user?.user;
       context.role = user?.role;
+      context.uuid = user?.uuid || "unique id";
     }
 
     req.context = context;
