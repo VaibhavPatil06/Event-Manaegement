@@ -203,7 +203,7 @@ export const getAllEvents = async (req, res) => {
     const totalEvents = await EventModel.countDocuments(filter);
     const hasMore = pageNumber * limitNumber < totalEvents;
 
-    res.json({ success: true, data: events, hasMore });
+    res.json({ success: true, data: events, hasMore,total:totalEvents });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

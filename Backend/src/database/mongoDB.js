@@ -1,13 +1,10 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const MONGO_URI = process.env.MONGO_URI
+const MONGO_URI = process.env.MONGO_URI;
 
 export const connectDB = async () => {
   try {
-    await mongoose.connect(MONGO_URI, {
-    //   useNewUrlParser: true,
-    //   useUnifiedTopology: true,
-    });
+    await mongoose.connect(MONGO_URI);
 
     console.log(`MongoDB connected to server ${mongoose.connection.host}`);
   } catch (error) {
@@ -19,12 +16,11 @@ export const connectDB = async () => {
 export const disconnectDB = async () => {
   try {
     await mongoose.connection.close();
-    console.log('MongoDB disconnected');
+    console.log("MongoDB disconnected");
   } catch (error) {
     console.error(`Error disconnecting from MongoDB: ${error.message}`);
-    process.exit(1); 
+    process.exit(1);
   }
 };
-
 
 export default connectDB;

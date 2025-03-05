@@ -85,7 +85,6 @@ const Home: React.FC = () => {
       setLoading(false);
     }
   };
-
   // Fetch when search term or page changes
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -99,7 +98,7 @@ const Home: React.FC = () => {
     if (addUpdateSuccess) {
       fetchEvents(page, searchTerm);
     }
-  }, [addUpdateSuccess]);
+  }, [addUpdateSuccess,page]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);

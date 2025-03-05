@@ -1,7 +1,4 @@
 import crypto from "crypto";
-import dotenv from "dotenv";
-
-dotenv.config(); // Load .env variables
 
 // Normalize key to 32 bytes using SHA256
 function normalizeKey(secretKey) {

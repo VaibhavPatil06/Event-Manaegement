@@ -9,7 +9,7 @@ import mongoose from "mongoose";
 export const me = async (req, res) => {
   try {
     const userDetails = await AdminModel.findById(req.context?.user)
-      .select("-password -city -unsubscribe -cookie")
+      .select("password cookie")
       .lean();
     res
       .status(201)
@@ -94,7 +94,6 @@ export const login = async (req, res) => {
       decryptedPassword,
       user.password
     );
-    console.log(decryptedPassword, user, isPasswordMatch);
     if (!isPasswordMatch) {
       res
         .status(404)
@@ -147,7 +146,7 @@ export const logout = async (req, res) => {
       expires: new Date(0),
     });
 
-    const user = await AdminModel.updateOne(
+    await AdminModel.updateOne(
       {
         _id: req?.context?.user,
       },
@@ -158,7 +157,6 @@ export const logout = async (req, res) => {
         },
       }
     );
-    console.log(req?.context);
     res.status(200).send({
       message: "User logged out.",
       success: true,
